@@ -200,8 +200,8 @@ angular.module('ui.bootstrap.tabs', [])
         });
 
         scope.disabled = false;
-        if ( attrs.disabled ) {
-          scope.$parent.$watch($parse(attrs.disabled), function(value) {
+        if ( attrs.disable ) {
+          scope.$parent.$watch($parse(attrs.disable), function(value) {
             scope.disabled = !! value;
           });
         }

@@ -531,7 +531,7 @@ describe('tabs', function() {
       ];
       elm = $compile([
         '<tabset>',
-        '  <tab ng-repeat="t in tabs" active="t.active" select="t.select()" disabled="t.disabled">',
+        '  <tab ng-repeat="t in tabs" active="t.active" select="t.select()" disable="t.disabled">',
         '    <tab-heading><b>heading</b> {{index}}</tab-heading>',
         '    content {{$index}}',
         '  </tab>',

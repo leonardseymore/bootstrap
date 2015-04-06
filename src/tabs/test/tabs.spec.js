@@ -384,8 +384,13 @@ describe('tabs', function() {
 
   describe('tabset controller', function() {
     function mockTab(isActive) {
+      var _isActive;
+      if (isActive || isActive === false) {
+        _isActive = isActive;
+      }
+
       return {
-        active: !!isActive,
+        active: _isActive,
         onSelect : angular.noop,
         onDeselect : angular.noop
       };
@@ -459,6 +464,13 @@ describe('tabs', function() {
         expect(tab1.active).toBe(true);
       });
 
+      it('should not select first active === false tab as selected', function() {
+        var tab = mockTab(false);
+
+        ctrl.addTab(tab);
+        expect(tab.active).toBe(false);
+      });
+
       it('should select a tab added that\'s already active', function() {
         var tab1 = mockTab(), tab2 = mockTab(true);
         ctrl.addTab(tab1);
@@ -513,6 +525,45 @@ describe('tabs', function() {
       expect(titles().eq(1)).toHaveClass('active');
       expect(contents().eq(1)).toHaveClass('active');
     }));
+
+    it('should not select tabs when being destroyed', inject(function($controller, $compile, $rootScope){
+      var selectList = [],
+          deselectList = [],
+          getTab = function(active){
+            return {
+              active: active,
+              select : function(){
+                selectList.push('select');
+              },
+              deselect : function(){
+                deselectList.push('deselect');
+              }
+            };
+          };
+
+      scope = $rootScope.$new();
+      scope.tabs = [
+        getTab(true),
+        getTab(false)
+      ];
+      elm = $compile([
+        '<tabset>',
+        '  <tab ng-repeat="t in tabs" active="t.active" select="t.select()" deselect="t.deselect()">',
+        '    <tab-heading><b>heading</b> {{index}}</tab-heading>',
+        '    content {{$index}}',
+        '  </tab>',
+        '</tabset>'
+      ].join('\n'))(scope);
+      scope.$apply();
+
+      // The first tab is selected the during the initial $digest.
+      expect(selectList.length).toEqual(1);
+
+      // Destroy the tabs - we should not trigger selection/deselection any more.
+      scope.$destroy();
+      expect(selectList.length).toEqual(1);
+      expect(deselectList.length).toEqual(0);
+    }));
   });
 
   describe('disabled', function() {
@@ -545,7 +596,7 @@ describe('tabs', function() {
       angular.forEach(scope.tabs, function(tab, i) {
         if (activeTab === tab) {
           expect(tab.active).toBe(true);
-          expect(tab.select.callCount).toBe( (tab.disabled) ? 0 : 1 );
+          expect(tab.select.calls.count()).toBe( (tab.disabled) ? 0 : 1 );
           expect(_titles.eq(i)).toHaveClass('active');
           expect(contents().eq(i).text().trim()).toBe('content ' + i);
           expect(contents().eq(i)).toHaveClass('active');
